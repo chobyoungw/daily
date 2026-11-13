@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>냠냠 다이어트 대작전</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Black+Han+Sans&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+  html,body{height:100%}
+  body{font-family:'Jua',system-ui,sans-serif;background:#ffd23f;color:#2b1d0e;overflow:hidden;touch-action:none}
+  .app{display:flex;flex-direction:column;height:100%;max-width:560px;margin:0 auto;background:#fff6d6;position:relative;overflow:hidden}
+
+  /* ---------- HUD ---------- */
+  .hud{background:#ff4f6d;color:#fff;padding:10px 14px 12px;border-bottom:5px solid #2b1d0e;position:relative;z-index:5}
+  .hud-top{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+  .wbox .lbl{font-size:13px;opacity:.9}
+  .weight{font-family:'Black Han Sans',sans-serif;font-size:44px;line-height:1;-webkit-text-stroke:2px #2b1d0e;text-shadow:3px 3px 0 #2b1d0e;letter-spacing:-1px}
+  .weight small{font-size:22px;-webkit-text-stroke:1px #2b1d0e}
+  .weight.pop{animation:pop .3s}
+  @keyframes pop{50%{transform:scale(1.18)}}
+  .side{text-align:right;font-size:14px;line-height:1.5}
+  .chip{display:inline-block;background:#fff;color:#2b1d0e;border:2px solid #2b1d0e;border-radius:999px;padding:1px 9px;font-size:13px}
+  .speed{cursor:pointer;background:#ffd23f}
+  .info{cursor:pointer;background:#fff;margin-left:4px}
+  .prog{margin-top:8px;height:22px;background:#fff;border:3px solid #2b1d0e;border-radius:999px;overflow:hidden;position:relative}
+  .prog .bar{position:absolute;top:0;bottom:0;width:0;transition:width .3s cubic-bezier(.3,1.4,.5,1)}
+  .prog .pos{left:50%;background:repeating-linear-gradient(45deg,#4cd964 0 10px,#36c150 10px 20px)}
+  .prog .neg{right:50%;background:repeating-linear-gradient(45deg,#ff6f87 0 10px,#ff4f6d 10px 20px)}
+  .prog.danger{animation:danger .5s infinite alternate}
+  @keyframes danger{to{box-shadow:0 0 0 4px #ffd23f;border-color:#b00020}}
+  .prog .mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:3px;margin-left:-1.5px;background:#2b1d0e;z-index:2}
+  .prog .pl,.prog .pr{position:absolute;top:0;bottom:0;display:flex;align-items:center;font-size:10px;color:#2b1d0e;opacity:.75;z-index:1}
+  .prog .pl{left:8px}.prog .pr{right:8px}
+  .prog #progTxt{position:absolute;top:50%;background:#2b1d0e;border-radius:8px;padding:0 6px;transform:translate(-50%,-50%);font-family:'Black Han Sans',sans-serif;font-size:12px;line-height:16px;color:#ffd23f;z-index:3;white-space:nowrap}
+  .rule{font-size:13px;color:#2b1d0e;background:#fff;border:2px dashed #2b1d0e;border-radius:10px;padding:5px 8px;margin-top:8px;line-height:1.45;display:none}
+  .credit{font-size:12px;color:#8a7a66;margin-top:12px;letter-spacing:1px}
+  .credit b{color:#ff4f6d;font-weight:400}
+  .tally{display:flex;justify-content:space-between;font-size:13px;margin-top:6px}
+
+  /* ---------- STAGE ---------- */
+  .stage{flex:1 1 0;position:relative;overflow:hidden;min-height:120px}
+  .burst{position:absolute;left:50%;top:50%;width:900px;height:900px;margin:-450px 0 0 -450px;
+    background:repeating-conic-gradient(#ffe27a 0 10deg,#ffd23f 10deg 20deg);animation:spin 30s linear infinite;opacity:.9}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .stage.burn .burst{background:repeating-conic-gradient(#b8f5c4 0 10deg,#7fe39a 10deg 20deg);animation-duration:6s}
+  .stage.eat .burst{background:repeating-conic-gradient(#ffc2cc 0 10deg,#ff94a6 10deg 20deg);animation-duration:8s}
+  .floor{position:absolute;left:0;right:0;bottom:0;height:16%;background:#8ed1ff;border-top:5px solid #2b1d0e}
+  .char{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);height:92%;max-width:80%;z-index:2;display:flex;justify-content:center}
+  /* 배경 음식 더미 */
+  .pile{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+  .pf{position:absolute;font-size:38px;line-height:1;transform:translate(-50%,-50%) rotate(var(--r));filter:drop-shadow(1px 2px 0 #2b1d0e55);transition:scale .25s}
+  .puff{position:absolute;font-size:26px;pointer-events:none;transform:translate(-50%,-50%);animation:puff .6s forwards;z-index:1}
+  @keyframes puff{0%{opacity:1;transform:translate(-50%,-50%) scale(.5)}100%{opacity:0;transform:translate(-50%,-140%) scale(1.5)}}
+  .char svg{height:100%;width:auto;max-width:100%;display:block;overflow:visible}
+  .char.jiggle{animation:jig .45s}
+  @keyframes jig{0%,100%{transform:translateX(-50%) scale(1,1)}30%{transform:translateX(-50%) scale(1.12,.88)}60%{transform:translateX(-50%) scale(.94,1.06)}}
+  .char.workout{animation:hop .32s infinite}
+  @keyframes hop{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-18px)}}
+  .char.sleep{animation:breathe 1.2s infinite}
+  @keyframes breathe{50%{transform:translateX(-50%) scale(1.03,.97)}}
+  .bubble{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#fff;border:3px solid #2b1d0e;border-radius:16px;padding:5px 12px;font-size:16px;white-space:nowrap;z-index:3;box-shadow:3px 3px 0 #2b1d0e}
+  .fx{position:absolute;pointer-events:none;z-index:8;font-family:'Black Han Sans',sans-serif;white-space:nowrap;transform:translate(-50%,-50%);-webkit-text-stroke:1.5px #2b1d0e;text-shadow:3px 3px 0 #2b1d0e;animation:rise 1.1s forwards}
+  @keyframes rise{0%{transform:translate(-50%,-50%) scale(.3)}20%{transform:translate(-50%,-50%) scale(1.25)}35%{transform:translate(-50%,-50%) scale(1)}100%{transform:translate(-50%,-190%);opacity:0}}
+  .bang{position:absolute;pointer-events:none;z-index:7;font-size:30px;animation:bang .6s forwards;transform:translate(-50%,-50%)}
+  @keyframes bang{0%{transform:translate(-50%,-50%) scale(.2)}50%{transform:translate(-50%,-50%) scale(1.4)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.6)}}
+  .flyer{position:fixed;z-index:30;font-size:46px;pointer-events:none;line-height:1;transform:translate(-50%,-50%)}
+  .stage.shake{animation:sshake .3s}
+  @keyframes sshake{25%{transform:translate(-6px,3px)}50%{transform:translate(5px,-3px)}75%{transform:translate(-3px,2px)}}
+
+  /* ---------- PANEL ---------- */
+  .panel{background:#fff;border-top:5px solid #2b1d0e;position:relative;z-index:5;padding-bottom:env(safe-area-inset-bottom)}
+  .sec{padding:6px 0 0}
+  .sec.eat{background:#ffe3e8}
+  .sec.burn{background:#ddf7e3;border-top:4px solid #2b1d0e}
+  .sec-head{display:flex;align-items:center;gap:6px;padding:0 10px}
+  .sec-title{flex:0 0 auto;font-family:'Black Han Sans',sans-serif;font-size:17px;color:#fff;-webkit-text-stroke:1px #2b1d0e;text-shadow:2px 2px 0 #2b1d0e;padding-right:2px}
+  .sec.eat .sec-title{color:#ff4f6d}.sec.burn .sec-title{color:#36c150}
+  .cats{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding:2px 0}
+  .cats::-webkit-scrollbar,.cards::-webkit-scrollbar{display:none}
+  .cat{flex:0 0 auto;font-family:inherit;font-size:12.5px;padding:2px 8px;border-radius:999px;border:2px solid #2b1d0e;background:#fff;cursor:pointer}
+  .cat.on{background:#2b1d0e;color:#ffd23f}
+  .cards{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:6px 8px 9px;touch-action:none}
+  .sec-sub{font-size:11px;color:#8a7a66}
+  .card{min-width:0;border:2.5px solid #2b1d0e;border-radius:11px;background:#fffaf0;padding:4px 1px 5px;text-align:center;cursor:grab;box-shadow:3px 3px 0 #2b1d0e;transition:transform .08s}
+  .card:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #2b1d0e}
+  .card .em{font-size:28px;line-height:1.1;pointer-events:none}
+  .card .nm{font-size:13px;line-height:1.15;margin-top:1px;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .abtns{position:absolute;left:8px;top:8px;z-index:6;display:flex;gap:6px}
+  .abtn{width:38px;height:38px;border-radius:50%;border:3px solid #2b1d0e;background:#fff;font-size:18px;box-shadow:2px 2px 0 #2b1d0e;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+  .abtn.off{background:#ccc;opacity:.7}
+  #bgmBtn.off{text-decoration:line-through}
+  @media (max-height:720px){
+    .hud{padding:6px 12px 8px}
+    .weight{font-size:34px}
+    .prog{height:19px;margin-top:5px}
+    .tally{margin-top:3px;font-size:12px}
+    .card .sv{display:none}
+    .card .em{font-size:25px}
+    .cards{padding:5px 10px 7px}
+    .sec{padding-top:4px}
+  }
+  .quit{cursor:pointer;background:#2b1d0e;color:#fff;margin-left:4px}
+  .card .sv{font-size:9px;color:#8a7a66;line-height:1.2;min-height:11px;letter-spacing:-.3px;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .kc{display:block;margin:3px 3px 0;font-size:12px;color:#fff;background:#ff4f6d;border:2px solid #2b1d0e;border-radius:7px;padding:0 1px;letter-spacing:-.3px;pointer-events:none}
+  .card.b .kc{background:#36c150}
+  .card.b{background:#f0fff3}
+  .hint{font-size:12px;color:#8a7a66;text-align:center;padding:0 10px 2px}
+
+  /* ---------- OVERLAYS ---------- */
+  .ov{position:fixed;inset:0;z-index:40;background:#2b1d0ecc;display:flex;align-items:center;justify-content:center;padding:16px}
+  .ov.hide{display:none}
+  .box{background:#fff6d6;border:5px solid #2b1d0e;border-radius:24px;box-shadow:8px 8px 0 #2b1d0e;max-width:380px;width:100%;padding:22px 20px;text-align:center;max-height:92vh;overflow:auto;touch-action:pan-y}
+  .logo{font-family:'Black Han Sans',sans-serif;font-size:36px;line-height:1.05;color:#ff4f6d;-webkit-text-stroke:2px #2b1d0e;text-shadow:4px 4px 0 #2b1d0e;margin-bottom:6px}
+  .logo span{color:#ffd23f}
+  .box p{font-size:15px;color:#6b5a45;line-height:1.45;margin-bottom:12px}
+  .field{display:flex;align-items:center;gap:8px;margin:8px 0;background:#fff;border:3px solid #2b1d0e;border-radius:14px;padding:6px 12px}
+  .field label{flex:0 0 auto;white-space:nowrap;text-align:left;font-size:16px}
+  .field input{flex:1;min-width:0;border:0;outline:0;font-family:'Black Han Sans',sans-serif;font-size:22px;text-align:right;background:transparent;color:#2b1d0e;user-select:text;-webkit-user-select:text}
+  .field em{font-style:normal;color:#8a7a66}
+  .warn{font-size:13px;color:#c0392b;min-height:18px;margin:4px 0 8px;line-height:1.35}
+  .btn{font-family:'Black Han Sans',sans-serif;font-size:24px;background:#ff4f6d;color:#fff;border:4px solid #2b1d0e;border-radius:16px;padding:10px 30px;box-shadow:5px 5px 0 #2b1d0e;cursor:pointer;-webkit-text-stroke:1px #2b1d0e}
+  .btn:active{transform:translate(3px,3px);box-shadow:2px 2px 0 #2b1d0e}
+  .btn.g{background:#36c150}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 16px}
+  .stats div{background:#fff;border:3px solid #2b1d0e;border-radius:12px;padding:6px;font-size:13px;color:#6b5a45}
+  .stats b{display:block;font-family:'Black Han Sans',sans-serif;font-size:22px;color:#2b1d0e;font-weight:400}
+  .src{text-align:left;font-size:13px;color:#4a3b2a;line-height:1.55}
+  .src h3{font-size:17px;margin:10px 0 4px;font-weight:400}
+  .src table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+  .src td{border-bottom:1px dashed #d9c9a8;padding:3px 2px}
+  .src td:last-child{text-align:right;white-space:nowrap}
+  .confetti{position:fixed;top:-30px;z-index:50;font-size:24px;pointer-events:none;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hud">
+    <div class="hud-top">
+      <div class="wbox">
+        <div class="lbl">현재 몸무게</div>
+        <div class="weight" id="weight">0.0<small>kg</small></div>
+      </div>
+      <div class="side">
+        <div>성공 <b id="target">-</b>kg · 남은 <b id="left">-</b>kg</div>
+        <div><span class="chip" id="bmi">BMI -</span></div>
+        <div style="margin-top:3px"><span class="chip speed" id="speed">⚡ 10배속</span><span class="chip info" id="infoBtn">ⓘ 기준</span><span class="chip quit" id="quitBtn">⏹ 종료</span></div>
+      </div>
+    </div>
+    <div class="prog" id="prog"><div class="bar neg" id="barNeg"></div><div class="bar pos" id="barPos"></div><div class="mid"></div><span class="pl" id="plTxt">💀 BMI 35 실패</span><span class="pr" id="prTxt">BMI 정상 성공 🏆</span><span id="progTxt">0%</span></div>
+    <div class="tally"><span>🍽️ 먹은 칼로리 <b id="inK">0</b>kcal</span><span>🔥 태운 칼로리 <b id="outK">0</b>kcal</span></div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="burst"></div>
+    <div class="abtns"><button class="abtn" id="sfxBtn" aria-label="효과음">🔊</button><button class="abtn" id="bgmBtn" aria-label="배경음악">🎵</button></div>
+    <div class="floor"></div>
+    <div class="pile" id="pile"></div>
+    <div class="bubble" id="bubble">배고파… 뭐 먹지? 🤤</div>
+    <div class="char" id="char">
+      <svg viewBox="0 0 300 300" id="svg">
+        <g id="legs" stroke="#2b1d0e" stroke-width="5">
+          <rect id="legL" x="112" y="240" width="26" height="46" rx="10" fill="#4a6cf7"/>
+          <rect id="legR" x="162" y="240" width="26" height="46" rx="10" fill="#4a6cf7"/>
+          <ellipse cx="122" cy="288" rx="22" ry="9" fill="#fff"/>
+          <ellipse cx="178" cy="288" rx="22" ry="9" fill="#fff"/>
+        </g>
+        <g id="arms" stroke="#2b1d0e" stroke-width="5">
+          <ellipse id="armL" class="skin" cx="78" cy="190" rx="14" ry="34" fill="#ffcf9e"/>
+          <ellipse id="armR" class="skin" cx="222" cy="190" rx="14" ry="34" fill="#ffcf9e"/>
+        </g>
+        <ellipse id="body" cx="150" cy="195" rx="60" ry="68" fill="#ff8fab" stroke="#2b1d0e" stroke-width="6"/>
+        <ellipse id="belly" cx="150" cy="210" rx="34" ry="40" fill="#ffc2d1"/>
+        <path id="belt" d="M100 236 Q150 250 200 236" stroke="#2b1d0e" stroke-width="5" fill="none"/>
+        <path id="tail" d="M0 0 q20 -10 22 6 q2 14 -12 10 q-10 -4 -2 -12 q10 -8 20 2" stroke="#2b1d0e" stroke-width="5" fill="none" stroke-linecap="round" opacity="0"/>
+        <g id="pigEars" opacity="0" stroke="#2b1d0e" stroke-width="5" stroke-linejoin="round">
+          <path id="earL" fill="#ff9fb8"/><path id="earR" fill="#ff9fb8"/>
+        </g>
+        <path id="head" class="skin" fill="#ffcf9e" stroke="#2b1d0e" stroke-width="6"/>
+        <path id="jaw" fill="none" stroke="#e39a63" stroke-width="5" stroke-linecap="round" opacity="0"/>
+        <path id="chin2" fill="none" stroke="#2b1d0e" stroke-width="4" stroke-linecap="round" opacity="0"/>
+        <path id="hair" d="M100 70 Q110 30 150 34 Q192 32 200 72 Q186 52 166 56 Q150 40 132 56 Q112 50 100 70Z" fill="#2b1d0e"/>
+        <g id="eyes">
+          <ellipse cx="128" cy="86" rx="7" ry="9" fill="#2b1d0e"/><circle cx="130" cy="83" r="2.5" fill="#fff"/>
+          <ellipse cx="172" cy="86" rx="7" ry="9" fill="#2b1d0e"/><circle cx="174" cy="83" r="2.5" fill="#fff"/>
+        </g>
+        <g id="eyesClosed" style="display:none" stroke="#2b1d0e" stroke-width="5" fill="none" stroke-linecap="round">
+          <path d="M120 88 Q128 80 136 88"/><path d="M164 88 Q172 80 180 88"/>
+        </g>
+        <ellipse id="cheekL" cx="114" cy="106" rx="11" ry="7" fill="#ff8fab" opacity=".7"/>
+        <ellipse id="cheekR" cx="186" cy="106" rx="11" ry="7" fill="#ff8fab" opacity=".7"/>
+        <ellipse id="mouth" cx="150" cy="120" rx="16" ry="6" fill="#8b1e2f" stroke="#2b1d0e" stroke-width="4"/>
+        <ellipse id="tongue" cx="150" cy="124" rx="8" ry="2" fill="#ff6b81"/>
+        <g id="snout" opacity="0">
+          <ellipse cx="150" cy="104" rx="19" ry="12" fill="#ff9fb8" stroke="#2b1d0e" stroke-width="4"/>
+          <ellipse cx="143" cy="104" rx="3" ry="5" fill="#2b1d0e"/><ellipse cx="157" cy="104" rx="3" ry="5" fill="#2b1d0e"/>
+        </g>
+        <text id="spark" x="200" y="140" font-size="22" opacity="0">✨</text>
+        <g id="sweat" style="display:none" fill="#5ec8ff" stroke="#2b1d0e" stroke-width="2">
+          <path d="M92 70 Q86 82 92 86 Q98 82 92 70Z"/><path d="M210 60 Q204 72 210 76 Q216 72 210 60Z"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="sec eat">
+      <div class="sec-head"><span class="sec-title">🍔 먹기</span><div class="cats" id="catsEat"></div></div>
+      <div class="cards" id="cardsEat" data-k="eat"></div>
+    </div>
+    <div class="sec burn">
+      <div class="sec-head"><span class="sec-title">🔥 살빼기</span><div class="cats" id="catsBurn"></div></div>
+      <div class="cards" id="cardsBurn" data-k="burn"></div>
+    </div>
+  </div>
+</div>
+
+<!-- start -->
+<div class="ov" id="startOv">
+  <div class="box">
+    <div class="logo">냠냠<br><span>다이어트</span> 대작전</div>
+    <p>먹으면 찌고, 움직이면 빠진다!<br>BMI <b>정상(18.5~22.9)</b>이 되면 <b>성공</b> 🏆<br>BMI <b>35(초고도비만)</b>가 되면 <b>실패</b> 💀</p>
+    <div class="field"><label>📏 키</label><input id="inH" type="number" inputmode="decimal" placeholder="165"><em>cm</em></div>
+    <div class="field"><label>⚖️ 현재 몸무게</label><input id="inW" type="number" inputmode="decimal" placeholder="65"><em>kg</em></div>
+    <div class="field"><label>🎯 목표 몸무게</label><input id="inT" type="number" inputmode="decimal" placeholder="60"><em>kg</em></div>
+    <div class="rule" id="rule"></div>
+    <div class="warn" id="warn"></div>
+    <button class="btn" id="startBtn">START!</button>
+    <div class="credit">제작 <b>CHO</b></div>
+  </div>
+</div>
+
+<!-- end -->
+<div class="ov hide" id="endOv">
+  <div class="box">
+    <div class="logo" id="endTitle">목표<br><span>달성!</span></div>
+    <p id="endMsg"></p>
+    <div class="stats">
+      <div>먹은 칼로리<b id="eIn">0</b></div>
+      <div>태운 칼로리<b id="eOut">0</b></div>
+      <div>먹은 음식<b id="eFood">0</b></div>
+      <div>활동 횟수<b id="eAct">0</b></div>
+    </div>
+    <button class="btn g" id="againBtn">다시 하기</button>
+    <div class="credit">제작 <b>CHO</b></div>
+  </div>
+</div>
+
+<!-- info -->
+<div class="ov hide" id="infoOv">
+  <div class="box">
+    <div class="logo" style="font-size:26px">칼로리 <span>기준</span></div>
+    <div class="src" id="srcBody"></div>
+    <div style="margin-top:14px"><button class="btn g" id="infoClose" style="font-size:20px;padding:8px 24px">닫기</button></div>
+  </div>
+</div>
+
+<script>
+(() => {
+/* ================= DATA =================
+ * 음식: 식품의약품안전처 식품영양성분 데이터베이스 기준 1인분 평균값
+ *       (신라면은 제품 영양표시 120g = 500kcal)
+ * 활동: 소모 kcal = MET × 체중(kg) × 시간(h)   (1 MET = 1 kcal/kg/h)
+ *       MET 값: Compendium of Physical Activities (Ainsworth et al.)
+ * 체중: 7,700 kcal = 체지방 1kg
+ */
+const FOODS_ALL = [
+  // 밥·면
+  {c:'밥·면', e:'🍚', n:'흰쌀밥', s:'1공기 210g', k:310},
+  {c:'밥·면', e:'🍜', n:'라면(신라면)', s:'1봉 120g', k:500},
+  {c:'밥·면', e:'🥡', n:'짜장면', s:'1그릇 700g', k:700},
+  {c:'밥·면', e:'🌶️', n:'짬뽕', s:'1그릇 700g', k:600},
+  {c:'밥·면', e:'🍙', n:'김밥', s:'1줄 230g', k:480},
+  {c:'밥·면', e:'🍳', n:'계란볶음밥', s:'1인분 350g', k:550},
+  {c:'밥·면', e:'🍝', n:'크림파스타', s:'1인분 300g', k:600},
+  // 고기·야식
+  {c:'고기·야식', e:'🥓', n:'삼겹살', s:'1인분 200g', k:590},
+  {c:'고기·야식', e:'🍗', n:'프라이드치킨', s:'1조각 100g', k:270},
+  {c:'고기·야식', e:'🍕', n:'치즈피자', s:'1조각 100g', k:270},
+  {c:'고기·야식', e:'🍔', n:'햄버거', s:'1개 220g', k:520},
+  {c:'고기·야식', e:'🌭', n:'핫도그', s:'1개 120g', k:330},
+  {c:'고기·야식', e:'🔥', n:'떡볶이', s:'1인분 300g', k:510},
+  {c:'고기·야식', e:'🥟', n:'군만두', s:'6개 180g', k:400},
+  {c:'고기·야식', e:'🍣', n:'초밥', s:'8피스 280g', k:400},
+  // 간식·디저트
+  {c:'간식', e:'🍰', n:'생크림케이크', s:'1조각 120g', k:380},
+  {c:'간식', e:'🍩', n:'글레이즈드도넛', s:'1개 60g', k:250},
+  {c:'간식', e:'🍦', n:'바닐라아이스크림', s:'1스쿱 100g', k:200},
+  {c:'간식', e:'🍫', n:'밀크초콜릿', s:'1조각 30g', k:160},
+  {c:'간식', e:'🥔', n:'감자칩', s:'1봉 60g', k:320},
+  {c:'간식', e:'🍿', n:'버터팝콘', s:'1봉 80g', k:380},
+  {c:'간식', e:'🥐', n:'크루아상', s:'1개 60g', k:240},
+  // 음료·술
+  {c:'음료·술', e:'🥤', n:'콜라', s:'1캔 355ml', k:140},
+  {c:'음료·술', e:'☕', n:'카페라떼', s:'1잔 355ml', k:160},
+  {c:'음료·술', e:'🧃', n:'오렌지주스', s:'1잔 200ml', k:88},
+  {c:'음료·술', e:'🍺', n:'맥주', s:'500ml', k:200},
+  {c:'음료·술', e:'🍶', n:'소주', s:'1병 360ml', k:408},
+  {c:'음료·술', e:'🍷', n:'레드와인', s:'1잔 150ml', k:125},
+  // 건강식
+  {c:'건강식', e:'🥗', n:'채소샐러드', s:'1인분 150g', k:60},
+  {c:'건강식', e:'🍎', n:'사과', s:'1개 200g', k:104},
+  {c:'건강식', e:'🍌', n:'바나나', s:'1개 120g', k:107},
+  {c:'건강식', e:'🍉', n:'수박', s:'2조각 300g', k:90},
+  {c:'건강식', e:'🍳', n:'달걀프라이', s:'1개 60g', k:100},
+];
+const ACTS_ALL = [
+  {c:'유산소', e:'🚶', n:'걷기', s:'시속 5km · 30분', met:3.5, h:0.5, mode:'workout'},
+  {c:'유산소', e:'🚶‍♀️', n:'빠른 걷기', s:'시속 6.4km · 30분', met:5.0, h:0.5, mode:'workout'},
+  {c:'유산소', e:'🏃', n:'조깅', s:'시속 8km · 30분', met:8.0, h:0.5, mode:'workout'},
+  {c:'유산소', e:'🏃‍♂️', n:'달리기', s:'시속 10km · 30분', met:9.8, h:0.5, mode:'workout'},
+  {c:'유산소', e:'🪢', n:'줄넘기', s:'보통 속도 · 15분', met:11.8, h:0.25, mode:'workout'},
+  {c:'유산소', e:'🏊', n:'수영', s:'중간 속도 · 30분', met:7.0, h:0.5, mode:'workout'},
+  {c:'유산소', e:'🪜', n:'계단 오르기', s:'15분', met:7.0, h:0.25, mode:'workout'},
+  {c:'유산소', e:'💃', n:'줌바댄스', s:'30분', met:7.0, h:0.5, mode:'workout'},
+  {c:'근력·기타', e:'🏋️', n:'근력운동', s:'중강도 · 30분', met:3.5, h:0.5, mode:'workout'},
+  {c:'근력·기타', e:'🧘', n:'요가', s:'30분', met:2.5, h:0.5, mode:'workout'},
+  {c:'근력·기타', e:'🧹', n:'대청소', s:'30분', met:3.3, h:0.5, mode:'workout'},
+  {c:'단식·휴식', e:'⏰', n:'간헐적 단식', s:'16시간 공복', met:1.0, h:16, mode:'sleep'},
+  {c:'단식·휴식', e:'🍽️', n:'한 끼 굶기', s:'6시간 공복', met:1.0, h:6, mode:'sleep'},
+  {c:'단식·휴식', e:'😴', n:'꿀잠', s:'수면 8시간', met:0.9, h:8, mode:'sleep'},
+];
+// 분류마다 최대 6개만 보여줌 (sn = 카드에 쓰는 짧은 이름)
+const SHORT={'라면(신라면)':'라면','크림파스타':'파스타','프라이드치킨':'치킨','치즈피자':'피자','생크림케이크':'케이크','글레이즈드도넛':'도넛',
+  '바닐라아이스크림':'아이스크림','밀크초콜릿':'초콜릿','버터팝콘':'팝콘','카페라떼':'라떼','오렌지주스':'주스','레드와인':'와인','채소샐러드':'샐러드',
+  '달걀프라이':'계란후라이','흰쌀밥':'쌀밥','근력운동':'근력','간헐적 단식':'단식','계단 오르기':'계단','빠른 걷기':'빠른걷기','한 끼 굶기':'굶기','줌바댄스':'줌바'};
+const HIDE=['계란볶음밥','핫도그','군만두','크루아상','빠른 걷기','계단 오르기'];
+const CAT={'밥·면':'밥·면','고기·야식':'야식','간식':'간식','음료·술':'음료·술','건강식':'건강','유산소':'유산소','근력·기타':'근력·기타','단식·휴식':'단식·휴식'};
+const six=all=>{ const cnt={}; return all.filter(x=>!HIDE.includes(x.n)).filter(x=>(cnt[x.c]=(cnt[x.c]||0)+1)<=6).map(x=>Object.assign({},x,{c:CAT[x.c]||x.c,sn:SHORT[x.n]||x.n})); };
+const FOODS = six(FOODS_ALL);
+const ACTS  = six(ACTS_ALL);
+const KCAL_PER_KG = 7700;
+
+/* ================= STATE ================= */
+const $ = s => document.querySelector(s);
+let H=0, W=0, startW=0, T=0, winW=0, failW=0, startCat='over', failBMI=35, dir=-1, speed=10, inK=0, outK=0, nFood=0, nAct=0, playing=false, busy=false;
+let bodyW=60;
+
+/* ================= AUDIO ENGINE =================
+ * 모든 효과음은 Web Audio로 실시간 합성 (외부 파일 없음)
+ * 모바일 대응: 첫 터치에서 AudioContext 생성·resume,
+ * iOS 무음 스위치 대응: 무음 <audio> 루프 + navigator.audioSession='playback'
+ */
+const AU={ctx:null,out:null,sfx:null,bgm:null,verb:null,noise:null,sfxOn:true,bgmOn:true,el:null};
+function silentWavURL(){
+  const n=8000, buf=new ArrayBuffer(44+n), v=new DataView(buf);
+  const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+  w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,n,true);
+  for(let i=0;i<n;i++)v.setUint8(44+i,128);
+  return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
+}
+function audioUnlock(){
+  try{
+    if(!AU.ctx){
+      try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
+      const C=window.AudioContext||window.webkitAudioContext; if(!C) return;
+      const c=AU.ctx=new C();
+      const comp=c.createDynamicsCompressor();
+      comp.threshold.value=-16; comp.knee.value=12; comp.ratio.value=5; comp.attack.value=.002; comp.release.value=.18;
+      AU.out=c.createGain(); AU.out.gain.value=1.15; AU.out.connect(comp); comp.connect(c.destination);
+      AU.sfx=c.createGain(); AU.sfx.gain.value=AU.sfxOn?1:0; AU.sfx.connect(AU.out);
+      AU.bgm=c.createGain(); AU.bgm.gain.value=AU.bgmOn?.3:0; AU.bgm.connect(AU.out);
+      const len=c.sampleRate*2, nb=c.createBuffer(1,len,c.sampleRate), d=nb.getChannelData(0);
+      for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+      AU.noise=nb;
+      // 작은 방 울림(리버브)
+      const ir=c.createBuffer(2,c.sampleRate*1.3,c.sampleRate);
+      for(let ch=0;ch<2;ch++){const x=ir.getChannelData(ch);for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*Math.pow(1-i/x.length,3);}
+      const cv=c.createConvolver(); cv.buffer=ir; const vg=c.createGain(); vg.gain.value=.5;
+      AU.verb=c.createGain(); AU.verb.connect(cv); cv.connect(vg); vg.connect(AU.sfx);
+    }
+    if(AU.ctx.state!=='running') AU.ctx.resume();
+    const b=AU.ctx.createBuffer(1,1,22050), s=AU.ctx.createBufferSource(); s.buffer=b; s.connect(AU.ctx.destination); s.start(0);
+    if(!AU.el){ AU.el=document.createElement('audio'); AU.el.src=silentWavURL(); AU.el.loop=true; AU.el.setAttribute('playsinline',''); AU.el.setAttribute('webkit-playsinline',''); }
+    if(AU.el.paused){ const p=AU.el.play(); if(p&&p.catch) p.catch(()=>{}); }
+  }catch(e){}
+}
+['touchstart','touchend','pointerdown','mousedown','click','keydown'].forEach(ev=>document.addEventListener(ev,audioUnlock,{capture:true,passive:true}));
+document.addEventListener('visibilitychange',()=>{ if(!AU.ctx) return; if(document.hidden){ AU.ctx.suspend&&AU.ctx.suspend(); } else { AU.ctx.resume(); if(AU.el&&AU.el.paused) AU.el.play().catch(()=>{}); } });
+
+const R=Math.random, mtof=m=>440*Math.pow(2,(m-69)/12);
+const T0=(d=0)=>AU.ctx.currentTime+0.02+d;
+function env(g,t,a,peak,dur){ g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(peak,t+a); g.gain.exponentialRampToValueAtTime(0.0001,t+Math.max(dur,a+.01)); }
+// 오실레이터
+function O(type,f0,f1,t,dur,vol,o={}){
+  const c=AU.ctx, osc=c.createOscillator(), g=c.createGain();
+  osc.type=type; osc.frequency.setValueAtTime(f0,t); if(f1&&f1!==f0) osc.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  let node=osc;
+  if(o.filter){ const f=c.createBiquadFilter(); f.type=o.filter; f.Q.value=o.q||1; f.frequency.setValueAtTime(o.ff0,t); if(o.ff1) f.frequency.exponentialRampToValueAtTime(o.ff1,t+dur); osc.connect(f); node=f; }
+  if(o.vib){ const l=c.createOscillator(), lg=c.createGain(); l.frequency.value=o.vib; lg.gain.value=o.vibd||10; l.connect(lg); lg.connect(osc.frequency); l.start(t); l.stop(t+dur+.05); }
+  if(o.trem){ const l=c.createOscillator(), lg=c.createGain(), tg=c.createGain(); l.type='square'; l.frequency.value=o.trem; lg.gain.value=.5; tg.gain.value=.5; l.connect(lg); lg.connect(tg.gain); node.connect(tg); node=tg; l.start(t); l.stop(t+dur+.05); }
+  node.connect(g); env(g,t,o.a||.004,vol,dur); g.connect(o.dest||AU.sfx); if(o.verb){ const s=c.createGain(); s.gain.value=o.verb; g.connect(s); s.connect(AU.verb); }
+  osc.start(t); osc.stop(t+dur+.05);
+}
+// 필터 노이즈
+function N(t,dur,vol,o={}){
+  const c=AU.ctx, s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain();
+  s.buffer=AU.noise; s.playbackRate.value=o.rate||1;
+  f.type=o.type||'bandpass'; f.Q.value=o.q||1; f.frequency.setValueAtTime(o.f0||1000,t); if(o.f1) f.frequency.exponentialRampToValueAtTime(o.f1,t+dur);
+  s.connect(f); f.connect(g); env(g,t,o.a||.002,vol,dur); g.connect(o.dest||AU.sfx);
+  if(o.verb){ const v=c.createGain(); v.gain.value=o.verb; g.connect(v); v.connect(AU.verb); }
+  s.start(t,R()*1.5); s.stop(t+dur+.05);
+}
+const ready=()=>AU.ctx && AU.sfxOn;
+function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+
+/* ---------- 효과음 레시피 ---------- */
+const SND={
+  whoosh(t=T0()){ N(t,.28,1.1,{f0:350,f1:3000,q:2.5,a:.12}); },
+  // 바삭바삭 (치킨·과자·사과)
+  crunch(t, bites=3){
+    for(let b=0;b<bites;b++){ const tb=t+b*.19;
+      N(tb,.07,.7,{type:'highpass',f0:1600,q:.7});
+      for(let i=0;i<7;i++) N(tb+R()*.07,.012+R()*.012,.45,{f0:1800+R()*5000,q:2.5});
+      O('sine',170,80,tb,.07,.35);
+    }
+  },
+  // 냠냠 쩝쩝 (밥·빵·케이크)
+  chew(t, n=3){
+    for(let i=0;i<n;i++){ const tb=t+i*.17;
+      N(tb,.11,.45,{type:'lowpass',f0:800,q:1.2});
+      N(tb+.02,.07,.3,{f0:450,q:5});
+      O('triangle',200,135,tb,.1,.25,{filter:'lowpass',ff0:900});
+    }
+  },
+  // 후루룩 (면)
+  slurp(t){
+    N(t,.6,.6,{f0:500,f1:3600,q:7,a:.25});
+    N(t+.05,.55,.25,{type:'highpass',f0:2500,a:.2});
+    N(t+.7,.32,.5,{f0:900,f1:3000,q:9,a:.12});
+    SND.chew(t+1.05,2);
+  },
+  // 지글지글 (고기)
+  sizzle(t){
+    N(t,1.0,.28,{type:'highpass',f0:4500,a:.05});
+    for(let i=0;i<30;i++) N(t+R()*1.0,.006+R()*.006,.55,{type:'highpass',f0:2500+R()*3000});
+    SND.chew(t+.75,3);
+  },
+  gulp(t){
+    O('sine',420,140,t,.17,.75,{filter:'lowpass',ff0:1400});
+    O('sine',130,60,t+.07,.12,.55);
+    N(t,.09,.25,{type:'lowpass',f0:600});
+  },
+  ahh(t,harsh=false){ // 크~ / 캬~
+    O('sawtooth',harsh?190:230,harsh?120:170,t,.75,.2,{a:.05,filter:'bandpass',ff0:harsh?1100:850,ff1:650,q:5});
+    O('sawtooth',harsh?190:230,harsh?120:170,t,.75,.12,{a:.05,filter:'bandpass',ff0:1500,q:7});
+    N(t,.6,.3,{f0:1600,f1:900,q:1.2,a:.06});
+  },
+  clink(t){ [[2637,.6,.35],[3951,.4,.2],[5274,.3,.12],[6644,.2,.08]].forEach(([f,d,v])=>O('sine',f,f,t,d,v,{verb:.6})); N(t,.02,.4,{type:'highpass',f0:5000}); },
+  fizz(t){ // 치익~ 탄산
+    N(t,.3,.9,{type:'highpass',f0:3000,f1:7000,a:.004});
+    for(let i=0;i<40;i++) N(t+.2+R()*1.0,.006,.25,{type:'highpass',f0:5000+R()*4000});
+  },
+  drink(t){ [0,.3,.6].forEach(d=>SND.gulp(t+d)); SND.ahh(t+.95); },
+  booze(t){ SND.clink(t); SND.gulp(t+.45); SND.gulp(t+.75); SND.ahh(t+1.1,true); },
+  soda(t){ SND.fizz(t); SND.gulp(t+.55); SND.gulp(t+.85); SND.ahh(t+1.2); },
+  burp(t){ O('sawtooth',100,78,t,.75,.75,{a:.03,filter:'lowpass',ff0:750,q:7,vib:28,vibd:22}); N(t,.6,.2,{type:'lowpass',f0:400,a:.03}); },
+  boing(t,big){ O('sine',big?140:220,big?380:560,t,.38,.45,{vib:14,vibd:35}); if(big){ O('sine',75,38,t,.45,.9); N(t,.3,.4,{type:'lowpass',f0:300}); } },
+  oink(t){
+    for(let i=0;i<2;i++){ const tb=t+i*.24;
+      O('sawtooth',330,230,tb,.2,1.2,{filter:'bandpass',ff0:1000,q:3.5,trem:48,a:.01}); O('square',300,210,tb,.2,.25,{filter:'lowpass',ff0:900,trem:48});
+      N(tb,.18,.35,{f0:1300,q:4,a:.01});
+    }
+  },
+  bling(t=T0()){ [1319,1568,2093,2637,3136].forEach((f,i)=>O('triangle',f,f,t+i*.055,.35,.22,{verb:.5})); },
+  blip(t,i){ O('square',700+i*45,700+i*45,t,.04,.05,{filter:'lowpass',ff0:3000}); },
+  step(t,h=1){ N(t,.07,.75*h,{type:'lowpass',f0:380,q:.8}); O('sine',115,48,t,.09,.55*h); N(t,.02,.2*h,{type:'highpass',f0:3000}); },
+  breath(t,v=.3){ N(t,.2,v,{f0:1200,q:.9,a:.05}); },
+  splash(t){ N(t,.45,.8,{type:'lowpass',f0:5000,f1:500,q:.6,a:.005,verb:.3}); for(let i=0;i<7;i++){const f=300+R()*900;O('sine',f,f*1.7,t+.1+R()*.35,.06,.18);} },
+  clank(t){ [612,1534,2473,3712].forEach((f,i)=>O('triangle',f,f*.995,t,.5-i*.08,.3-i*.05,{verb:.4})); N(t,.05,.6,{type:'highpass',f0:2000}); O('sine',90,45,t,.15,.6); },
+  grunt(t){ O('sawtooth',155,115,t,.35,.3,{a:.04,filter:'bandpass',ff0:700,q:3.5}); N(t,.3,.2,{f0:900,q:1,a:.04}); },
+  bowl(t){ [[432,.35],[1191,.16],[2312,.08]].forEach(([f,v])=>{O('sine',f,f,t,2.6,v,{a:.02,verb:.8}); O('sine',f*1.004,f*1.004,t,2.6,v*.6,{a:.02});}); },
+  brush(t){ N(t,.24,.55,{f0:3200,f1:1800,q:1.2,a:.09}); },
+  squeak(t){ O('sine',1800,2600,t,.1,.18); },
+  kick(t,dest){ O('sine',150,45,t,.14,.8,{dest}); },
+  hat(t,dest,v=.15){ N(t,.03,v,{type:'highpass',f0:8000,dest}); },
+  clap(t,dest){ N(t,.12,.45,{f0:1500,q:.8,dest}); N(t+.012,.1,.3,{f0:1300,q:.8,dest}); },
+  growl(t){ O('sawtooth',72,58,t,1.3,.7,{a:.1,filter:'lowpass',ff0:240,q:9,vib:6,vibd:22}); for(let i=0;i<4;i++){O('sine',230,110,t+.2+R()*.9,.09,.25);} },
+  tick(t,hi){ N(t,.025,.5,{type:'highpass',f0:hi?4500:3200}); O('sine',hi?2200:1700,null,t,.03,.15); },
+  snore(t){
+    for(let k=0;k<2;k++){ const tb=t+k*1.0;
+      O('sawtooth',58,52,tb,.65,.45,{a:.2,filter:'lowpass',ff0:420,q:6,trem:24});
+      N(tb,.65,.35,{type:'lowpass',f0:350,q:4,a:.2});
+      N(tb+.68,.3,.12,{f0:1900,f1:1200,q:12,a:.05});
+    }
+  },
+  start(t=T0()){ [60,64,67,72].forEach((m,i)=>O('square',mtof(m+12),null,t+i*.08,.12,.12,{filter:'lowpass',ff0:4000})); O('square',mtof(84),null,t+.34,.4,.14,{vib:7,vibd:15,filter:'lowpass',ff0:4000}); SND.kick(t+.34,AU.sfx); N(t+.34,.3,.4,{type:'highpass',f0:6000}); },
+  win(t=T0()){
+    const mel=[[67,0,.12],[72,.12,.12],[76,.24,.12],[79,.36,.36],[76,.72,.12],[79,.84,.7]];
+    mel.forEach(([m,d,l])=>{ O('square',mtof(m+12),null,t+d,l,.13,{filter:'lowpass',ff0:5000,vib:d>.8?6:0,vibd:12}); O('triangle',mtof(m),null,t+d,l,.18); });
+    [48,55,60].forEach((m,i)=>O('triangle',mtof(m),null,t+.84,.9,.2));
+    for(let i=0;i<8;i++) N(t+.72+i*.03,.05,.3,{f0:1800,q:.8}); // 스네어 롤
+    // 박수·환호
+    N(t+.8,2.2,.35,{f0:2200,q:.4,a:.4});
+    for(let i=0;i<70;i++) N(t+.8+R()*2,.012,.35,{f0:1500+R()*2500,q:1.5});
+  },
+  lose(t=T0()){
+    N(t,1.5,1,{type:'lowpass',f0:3000,f1:60,q:.7,a:.004});
+    O('sine',85,28,t,1.3,1);
+    for(let i=0;i<25;i++) N(t+.1+R()*1.2,.01,.4,{type:'highpass',f0:2000+R()*3000});
+    [55,54,53,52].forEach((m,i)=>O('sawtooth',mtof(m),mtof(m)*(i===3?.97:1),t+1.4+i*.42,i===3?1.0:.38,.16,{filter:'lowpass',ff0:1200,q:2,vib:i===3?6:0,vibd:8,a:.02}));
+  },
+  quit(t=T0()){ [72,67,64,60].forEach((m,i)=>O('triangle',mtof(m),null,t+i*.1,.18,.22)); },
+  tap(t=T0()){ O('sine',900,1300,t,.05,.12); },
+};
+
+/* 음식별 소리 */
+const FOOD_SND={
+  '흰쌀밥':'chew','라면(신라면)':'slurp','짜장면':'slurp','짬뽕':'slurp','김밥':'chew','계란볶음밥':'chew','크림파스타':'slurp',
+  '삼겹살':'sizzle','프라이드치킨':'crunch','치즈피자':'chew','햄버거':'chew','핫도그':'crunch','떡볶이':'chew','군만두':'crunch','초밥':'chew',
+  '생크림케이크':'chew','글레이즈드도넛':'chew','바닐라아이스크림':'chew','밀크초콜릿':'crunch','감자칩':'crunch','버터팝콘':'crunch','크루아상':'crunch',
+  '콜라':'soda','카페라떼':'drink','오렌지주스':'drink','맥주':'soda','소주':'booze','레드와인':'booze',
+  '채소샐러드':'crunch','사과':'crunch','바나나':'chew','수박':'slurp','달걀프라이':'chew',
+};
+function playEat(f){
+  if(!ready()) return;
+  const t=T0(), kind=FOOD_SND[f.n]||'chew';
+  ({crunch:()=>SND.crunch(t,3), chew:()=>SND.chew(t,3), slurp:()=>SND.slurp(t), sizzle:()=>SND.sizzle(t),
+    soda:()=>SND.soda(t), drink:()=>SND.drink(t), booze:()=>SND.booze(t)})[kind]();
+  const after = {slurp:1.4,sizzle:1.3,soda:1.8,drink:1.6,booze:1.8}[kind]||.6;
+  if(kind!=='drink'&&kind!=='soda'&&kind!=='booze') SND.gulp(t+after);
+  SND.boing(t+after+.2, f.k>=500);
+  if(f.k>=600) SND.burp(t+after+.7);
+  buzz(f.k>=500?[40,60,40,60,120]:[30,50,30]);
+}
+/* 활동별 소리 (dur초 동안) */
+const ACT_SND={
+  '걷기':'walk','빠른 걷기':'walkfast','조깅':'jog','달리기':'run','줄넘기':'rope','수영':'swim','계단 오르기':'stairs',
+  '줌바댄스':'dance','근력운동':'lift','요가':'yoga','대청소':'clean','간헐적 단식':'fast','한 끼 굶기':'fast','꿀잠':'sleep'
+};
+function playAct(a,dur){
+  if(!ready()) return;
+  const t=T0(), kind=ACT_SND[a.n];
+  const steps=(iv,h,br)=>{ for(let x=0,i=0;x<dur;x+=iv,i++){ SND.step(t+x,h*(i%2?.85:1)); if(br&&i%br===0) SND.breath(t+x+iv*.5,.28); } };
+  switch(kind){
+    case 'walk': steps(.32,.7,0); break;
+    case 'walkfast': steps(.25,.8,4); break;
+    case 'jog': steps(.2,.9,2); break;
+    case 'run': steps(.16,1,2); for(let x=0;x<dur;x+=.32) SND.breath(t+x+.08,.35); break;
+    case 'rope': for(let x=0;x<dur;x+=.26){ N(t+x,.14,.5,{f0:1200,f1:3500,q:3,a:.06}); SND.tick(t+x+.13,true); SND.step(t+x+.15,.5); } break;
+    case 'swim': for(let x=0;x<dur;x+=.45) SND.splash(t+x); break;
+    case 'stairs': for(let x=0,i=0;x<dur;x+=.24,i++){ SND.step(t+x,.9); O('sine',120+i*14,60,t+x,.06,.25); if(i%3===2) SND.breath(t+x+.1,.3);} break;
+    case 'dance': for(let x=0,i=0;x<dur;x+=.125,i++){ const d=AU.sfx; if(i%4===0) SND.kick(t+x,d); if(i%2===1) SND.hat(t+x,d,.22); if(i%8===4) SND.clap(t+x,d); if(i%4===2) O('square',mtof([60,64,67,72][(i>>2)%4]+12),null,t+x,.1,.07,{filter:'lowpass',ff0:3000}); } break;
+    case 'lift': SND.grunt(t); SND.clank(t+.4); SND.grunt(t+.85); SND.clank(t+1.25); break;
+    case 'yoga': SND.bowl(t); N(t+.3,.8,.18,{f0:900,q:.7,a:.4}); N(t+1.2,.8,.15,{f0:700,q:.7,a:.3}); break;
+    case 'clean': for(let x=0,i=0;x<dur;x+=.28,i++){ SND.brush(t+x); if(i%3===1) SND.squeak(t+x+.12); } break;
+    case 'fast': SND.growl(t); for(let x=0,i=0;x<dur;x+=.5,i++) SND.tick(t+x,i%2===0); break;
+    case 'sleep': SND.snore(t); break;
+  }
+  buzz(kind==='sleep'||kind==='fast'?[60]:[25,60,25,60,25,60]);
+}
+
+/* ---------- 배경음악 (칩튠 루프) ---------- */
+const BGM={on:false,tempo:132,step:0,next:0,timer:null,fast:false};
+const PROG=[[48,52,55],[45,48,52],[41,45,48],[43,47,50]]; // C Am F G
+const LEAD=[
+  [72,0,0,76,0,79,0,0,76,0,74,0,72,0,0,0],
+  [69,0,0,72,0,76,0,0,74,0,72,0,69,0,0,0],
+  [65,0,0,69,0,72,0,0,74,0,72,0,69,0,72,0],
+  [74,0,0,71,0,74,0,0,79,0,77,0,76,0,74,0],
+];
+const BASS=[1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0];
+function bgmStep(s,t){
+  const bar=(s>>4)&3, b=s&15, ch=PROG[bar], d=AU.bgm, spb=60/BGM.tempo/4;
+  if(b%4===0) SND.kick(t,d);
+  if(b===4||b===12) SND.clap(t,d);
+  if(b%2===1) SND.hat(t,d,.12);
+  if(BASS[b]) O('triangle',mtof(ch[0]-12),null,t,spb*1.7,.5,{dest:d});
+  if(b%2===0) O('square',mtof(ch[(b>>1)%3]+12),null,t,spb*.8,.045,{dest:d,filter:'lowpass',ff0:2500});
+  const m=LEAD[bar][b]; if(m) O('square',mtof(m),null,t,spb*1.8,.09,{dest:d,filter:'lowpass',ff0:3500});
+}
+function bgmTick(){
+  if(!AU.ctx||!BGM.on) return;
+  const c=AU.ctx; if(BGM.next<c.currentTime) BGM.next=c.currentTime+.05;
+  while(BGM.next<c.currentTime+.15){ bgmStep(BGM.step,BGM.next); BGM.next+=60/(BGM.fast?158:BGM.tempo)/4; BGM.step=(BGM.step+1)%64; }
+}
+function bgmStart(){ if(!AU.ctx) return; BGM.on=true; BGM.step=0; BGM.next=AU.ctx.currentTime+.1; clearInterval(BGM.timer); BGM.timer=setInterval(bgmTick,25); }
+function bgmStop(){ BGM.on=false; clearInterval(BGM.timer); }
+function setSfx(on){ AU.sfxOn=on; if(AU.sfx) AU.sfx.gain.value=on?1:0; $('#sfxBtn').textContent=on?'🔊':'🔇'; $('#sfxBtn').classList.toggle('off',!on); }
+function setBgm(on){ AU.bgmOn=on; if(AU.bgm) AU.bgm.gain.setTargetAtTime(on?.3:0,AU.ctx.currentTime,.05); $('#bgmBtn').classList.toggle('off',!on); }
+
+/* ================= HELPERS ================= */
+const bmiOf = w => w/((H/100)**2);
+function bmiLabel(b){ // 대한비만학회 기준
+  if(b<18.5) return '저체중';
+  if(b<23) return '정상';
+  if(b<25) return '비만 전단계';
+  if(b<30) return '1단계 비만';
+  if(b<35) return '2단계 비만';
+  return '3단계 비만';
+}
+const fmt = n => Math.round(n).toLocaleString('ko-KR');
+const actKcal = a => a.met * W * a.h;
+
+/* ================= UI BUILD ================= */
+const SEC = {
+  eat:{list:FOODS, cats:'#catsEat', cards:'#cardsEat', cat:null},
+  burn:{list:ACTS, cats:'#catsBurn', cards:'#cardsBurn', cat:null},
+};
+function renderSec(k){
+  const S=SEC[k], cs=[...new Set(S.list.map(x=>x.c))];
+  if(!cs.includes(S.cat)) S.cat=cs[0];
+  $(S.cats).innerHTML = cs.map(c=>`<button class="cat ${c===S.cat?'on':''}" data-c="${c}">${c}</button>`).join('');
+  $(S.cards).innerHTML = S.list.map((x,i)=>x.c!==S.cat?'':
+    `<div class="card ${k==='burn'?'b':''}" data-i="${i}"><div class="em">${x.e}</div><div class="nm">${x.sn}</div><div class="sv">${x.s.replace(/ · /,' ')}</div><div class="kc">${k==='eat'?'+'+fmt(x.k):'-'+fmt(actKcal(x))}</div></div>`).join('');
+}
+['eat','burn'].forEach(k=>$(SEC[k].cats).addEventListener('click',e=>{
+  const b=e.target.closest('.cat'); if(!b) return; SEC[k].cat=b.dataset.c; renderSec(k);
+}));
+
+/* ================= HUD ================= */
+function updateHUD(){
+  const w=$('#weight'); w.innerHTML=W.toFixed(1)+'<small>kg</small>';
+  w.classList.remove('pop'); void w.offsetWidth; w.classList.add('pop');
+  $('#left').textContent = Math.abs(W-T).toFixed(1);
+  const b=bmiOf(W); $('#bmi').textContent=`BMI ${b.toFixed(1)} · ${bmiLabel(b)}`;
+  // 가운데 0%에서 시작: 오른쪽 절반 = 0~100%(성공), 왼쪽 절반 = 0~-20%(실패)
+  const pct=progress();
+  const posW=clamp(pct/100)*50, negW=clamp(-pct/100)*50;
+  $('#barPos').style.width=posW+'%'; $('#barNeg').style.width=negW+'%';
+  const tx=$('#progTxt'); tx.textContent=(pct>0?'+':'')+pct.toFixed(1)+'%';
+  tx.style.left='50%';
+  $('#prog').classList.toggle('danger', pct<=-60);
+  $('#inK').textContent=fmt(inK); $('#outK').textContent=fmt(outK);
+  renderSec('burn'); // 체중이 바뀌면 운동 소모 kcal도 바뀜
+}
+
+$('#speed').onclick=()=>{ speed = speed===10?1:10; $('#speed').textContent = speed===10?'⚡ 10배속':'🐢 현실 1배속'; say(speed===10?'게임 모드! 체중 변화 10배속 ⚡':'현실 모드! 7,700kcal = 1kg 🐢'); };
+
+/* ================= CHARACTER ================= */
+const svg = {
+  body:$('#body'), belly:$('#belly'), belt:$('#belt'), head:$('#head'), armL:$('#armL'), armR:$('#armR'),
+  legL:$('#legL'), legR:$('#legR'), mouth:$('#mouth'), tongue:$('#tongue'), cheekL:$('#cheekL'), cheekR:$('#cheekR'),
+  jaw:$('#jaw'), chin2:$('#chin2'), hair:$('#hair'), snout:$('#snout'), ears:$('#pigEars'), earL:$('#earL'), earR:$('#earR'),
+  tail:$('#tail'), spark:$('#spark')
+};
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+// 진행률(%): 0 = 시작, +100 = 성공 체중(BMI 정상), -100 = 실패 체중(BMI 35)
+function progress(){
+  if(!startW) return 0;
+  const d=W-startW, toWin=winW-startW;
+  if(toWin!==0 && d*toWin>=0) return d/toWin*100;          // 성공 쪽으로 이동
+  return -Math.abs(d)/Math.max(0.1,Math.abs(failW-startW))*100; // 실패 쪽으로 이동
+}
+// F: -1(성공, V라인) ~ 0(시작) ~ +1(실패 직전, 완전 돼지)
+function fatness(){
+  if(!startW) return 0;
+  if(W<=startW) return -clamp((startW-W)/(winW<startW ? Math.max(1,startW-winW) : 5));
+  return clamp((W-startW)/Math.max(1,failW-startW));
+}
+function targetBodyW(){ const b=bmiOf(W)||22; return Math.max(34, Math.min(120, 60 + (b-22)*5 + fatness()*10)); }
+function lerpColor(a,b,t){ const pa=a.match(/\w\w/g).map(h=>parseInt(h,16)), pb=b.match(/\w\w/g).map(h=>parseInt(h,16));
+  return '#'+pa.map((v,i)=>Math.round(v+(pb[i]-v)*t).toString(16).padStart(2,'0')).join(''); }
+let shownF=0;
+function draw(rx,F){
+  // body
+  svg.body.setAttribute('rx',rx);
+  svg.body.setAttribute('ry', 62 + Math.max(0,(rx-60))*0.18);
+  svg.belly.setAttribute('rx', rx*0.58); svg.belly.setAttribute('ry', 36 + Math.max(0,rx-60)*0.2);
+  svg.armL.setAttribute('cx', 150-rx-10); svg.armR.setAttribute('cx', 150+rx+10);
+  svg.armL.setAttribute('rx', 12 + rx*0.05); svg.armR.setAttribute('rx', 12 + rx*0.05);
+  svg.belt.setAttribute('d', `M${150-rx*0.85} 236 Q150 ${248+rx*0.05} ${150+rx*0.85} 236`);
+  const lw = 22 + rx*0.09;
+  svg.legL.setAttribute('width',lw); svg.legR.setAttribute('width',lw);
+  svg.legL.setAttribute('x', 150-8-lw - rx*0.08); svg.legR.setAttribute('x', 150+8 + rx*0.08);
+
+  // face shape
+  const j=clamp(-F), f=clamp(F), p=clamp((F-0.2)/0.7);   // j: 턱선, f: 살, p: 돼지화
+  const cx=150, cy=92, R=54+f*10-j*3, cheek=R+f*8-j*4;
+  const chinY=cy+R+j*9+f*4, side=cy+R*(0.6-0.3*j), cw=R*(0.55-0.42*j)+f*10;
+  svg.head.setAttribute('d',`M${cx-R} ${cy} A${R} ${R} 0 0 1 ${cx+R} ${cy} C${cx+cheek} ${side} ${cx+cw} ${chinY} ${cx} ${chinY} C${cx-cw} ${chinY} ${cx-cheek} ${side} ${cx-R} ${cy}Z`);
+  // 턱선 하이라이트
+  svg.jaw.setAttribute('d',`M${cx-R*0.82} ${cy+R*0.45} Q${cx-R*0.35} ${chinY-6} ${cx} ${chinY-7} Q${cx+R*0.35} ${chinY-6} ${cx+R*0.82} ${cy+R*0.45}`);
+  svg.jaw.setAttribute('opacity', (j*0.75).toFixed(2));
+  svg.spark.setAttribute('opacity', clamp((j-0.6)/0.4).toFixed(2));
+  svg.spark.setAttribute('x', cx+R*0.55); svg.spark.setAttribute('y', chinY-4);
+  // 이중턱
+  svg.chin2.setAttribute('d',`M${cx-R*0.45} ${chinY-3} Q${cx} ${chinY+8+f*14} ${cx+R*0.45} ${chinY-3}`);
+  svg.chin2.setAttribute('opacity', clamp((f-0.15)/0.35).toFixed(2));
+  // 피부색 → 돼지 분홍
+  const skin=lerpColor('#ffcf9e','#ffa3bd',p);
+  document.querySelectorAll('.skin').forEach(e=>e.setAttribute('fill',skin));
+  // 머리카락 사라짐, 돼지 귀/코/꼬리
+  svg.hair.setAttribute('opacity',(1-p*0.95).toFixed(2));
+  svg.hair.setAttribute('transform',`translate(150 92) scale(${(R/54).toFixed(3)}) translate(-150 -92)`);
+  svg.ears.setAttribute('opacity',p.toFixed(2));
+  svg.earL.setAttribute('d',`M${cx-R*0.95} ${cy-R*0.15} L${cx-R*1.42} ${cy-R*0.78} L${cx-R*0.45} ${cy-R*0.82}Z`);
+  svg.earR.setAttribute('d',`M${cx+R*0.95} ${cy-R*0.15} L${cx+R*1.42} ${cy-R*0.78} L${cx+R*0.45} ${cy-R*0.82}Z`);
+  svg.snout.setAttribute('opacity',p.toFixed(2));
+  svg.snout.setAttribute('transform',`translate(150 104) scale(${(0.4+p*0.6+f*0.15).toFixed(3)}) translate(-150 -104)`);
+  svg.tail.setAttribute('opacity',p.toFixed(2));
+  svg.tail.setAttribute('transform',`translate(${150+rx*0.92} 236)`);
+  // 볼
+  const ch = 10 + f*8 - j*4;
+  svg.cheekL.setAttribute('rx',ch); svg.cheekR.setAttribute('rx',ch);
+  svg.cheekL.setAttribute('cx',114-f*6); svg.cheekR.setAttribute('cx',186+f*6);
+  // 입은 돼지코 아래로
+  if(!mouthOpen){ svg.mouth.setAttribute('cy',120+p*4); svg.tongue.setAttribute('cy',124+p*4); }
+}
+let mouthOpen=false;
+(function loop(){
+  bodyW += (targetBodyW()-bodyW)*0.12; shownF += (fatness()-shownF)*0.12;
+  draw(bodyW, shownF);
+  requestAnimationFrame(loop);
+})();
+function openMouth(on){
+  mouthOpen=on; const p=clamp((shownF-0.2)/0.7);
+  svg.mouth.setAttribute('ry', on?20:6); svg.mouth.setAttribute('rx', on?22:16); svg.mouth.setAttribute('cy', on?124+p*4:120+p*4);
+  svg.tongue.setAttribute('cy', on?132+p*4:124+p*4); svg.tongue.setAttribute('ry', on?6:2);
+}
+function setEyes(closed){ $('#eyes').style.display=closed?'none':''; $('#eyesClosed').style.display=closed?'':'none'; }
+function say(t){ $('#bubble').textContent=t; }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+
+/* ================= FX ================= */
+function fxText(text,color,x,y,size=32){
+  const s=$('#stage').getBoundingClientRect();
+  const el=document.createElement('div'); el.className='fx'; el.textContent=text;
+  el.style.color=color; el.style.fontSize=size+'px'; el.style.left=(x-s.left)+'px'; el.style.top=(y-s.top)+'px';
+  $('#stage').appendChild(el); setTimeout(()=>el.remove(),1100);
+}
+function bangs(x,y,chars){
+  const s=$('#stage').getBoundingClientRect();
+  for(let i=0;i<7;i++){
+    const el=document.createElement('div'); el.className='bang'; el.textContent=pick(chars);
+    el.style.left=(x-s.left)+'px'; el.style.top=(y-s.top)+'px';
+    const a=Math.random()*Math.PI*2, r=60+Math.random()*50;
+    el.style.setProperty('--dx',Math.cos(a)*r+'px'); el.style.setProperty('--dy',Math.sin(a)*r+'px');
+    $('#stage').appendChild(el); setTimeout(()=>el.remove(),600);
+  }
+}
+function mouthPos(){ const r=svg.mouth.getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height/2, r}; }
+function flash(cls){ const st=$('#stage'); st.classList.remove('eat','burn'); void st.offsetWidth; st.classList.add(cls); clearTimeout(flash.t); flash.t=setTimeout(()=>st.classList.remove(cls),900); }
+
+/* ================= 배경 음식 더미 =================
+ * 먹으면 음식이 위에서 떨어져 바닥에 쌓이고,
+ * 살빼기로 태운 칼로리만큼 위에서부터(최근 먹은 것부터) 사라짐
+ */
+const PILE={items:[],bank:0,bins:[]};
+const SZ=38;
+function pileReset(){
+  const w=$('#stage').clientWidth||360;
+  PILE.bins=new Array(Math.max(8,Math.floor(w/(SZ*0.95)))).fill(0);
+  PILE.items=[]; PILE.bank=0; $('#pile').innerHTML='';
+}
+function pileAdd(f){
+  const st=$('#stage'), Wd=st.clientWidth, Ht=st.clientHeight, floorTop=Ht*0.84;
+  const n=PILE.bins.length, bw=Wd/n;
+  // 캐릭터 뒤(가운데)는 가려지니까 양옆부터 높게 쌓임
+  const eff=PILE.bins.map((h,i)=>{ const c=(i+.5)/n; return h + (c>0.24&&c<0.76?3:0); });
+  const minH=Math.min(...eff);
+  const cands=eff.map((h,i)=>h<=minH+.5?i:-1).filter(i=>i>=0);
+  const bin=cands[Math.floor(Math.random()*cands.length)];
+  const lvl=PILE.bins[bin]++;
+  const x=bin*bw+bw/2+(Math.random()*10-5);
+  const y=floorTop-SZ*0.45-lvl*SZ*0.72;
+  const r=Math.round(Math.random()*60-30);
+  const el=document.createElement('div'); el.className='pf'; el.textContent=f.e;
+  el.style.left=(x/Wd*100)+'%'; el.style.top=(y/Ht*100)+'%'; el.style.setProperty('--r',r+'deg');
+  $('#pile').appendChild(el);
+  const fall=y+60;
+  el.animate([
+    {transform:`translate(-50%,calc(-50% - ${fall}px)) rotate(${r-200}deg)`},
+    {transform:`translate(-50%,-50%) rotate(${r}deg)`,offset:.7,easing:'ease-out'},
+    {transform:`translate(-50%,calc(-50% - 10px)) rotate(${r}deg)`,offset:.85,easing:'ease-in'},
+    {transform:`translate(-50%,-50%) rotate(${r}deg)`}
+  ],{duration:650,easing:'ease-in'});
+  if(ready()) setTimeout(()=>{ const t=T0(); O('sine',260+Math.random()*80,90,t,.08,.35); N(t,.05,.25,{type:'lowpass',f0:900}); },450);
+  PILE.items.push({el,k:f.k,bin});
+  pileShrinkTop();
+}
+function pileBurn(kcal){
+  if(!PILE.items.length){ PILE.bank=0; return; }
+  PILE.bank+=kcal; let d=0;
+  while(PILE.items.length && PILE.bank>=PILE.items[PILE.items.length-1].k){
+    const it=PILE.items.pop(); PILE.bank-=it.k; PILE.bins[it.bin]--;
+    vanish(it.el,d); d+=60;
+  }
+  if(!PILE.items.length) PILE.bank=0;
+  pileShrinkTop();
+}
+function pileShrinkTop(){ // 다 못 태운 맨 위 음식은 태운 만큼 작아짐
+  const top=PILE.items[PILE.items.length-1]; if(!top) return;
+  top.el.style.scale=(1-0.6*clamp(PILE.bank/top.k)).toFixed(2);
+}
+function vanish(el,delay){
+  setTimeout(()=>{
+    const p=document.createElement('div'); p.className='puff'; p.textContent=pick(['💨','✨','🔥']);
+    p.style.left=el.style.left; p.style.top=el.style.top; $('#pile').appendChild(p); setTimeout(()=>p.remove(),600);
+    el.animate([{opacity:1,scale:el.style.scale||1},{opacity:0,scale:0,translate:'0 -30px'}],{duration:350,easing:'ease-in'}).onfinish=()=>el.remove();
+    if(ready()){ const t=T0(); O('triangle',900+Math.random()*500,2200,t,.12,.12); }
+  },delay);
+}
+
+/* ================= ACTIONS ================= */
+function changeWeight(kcal){ // +먹기, -소모
+  W = Math.max(20, W + kcal/KCAL_PER_KG*speed);
+  updateHUD(); checkEnd();
+}
+function eat(f){
+  nFood++; inK+=f.k; setTimeout(()=>pileAdd(f),250);
+  const m=mouthPos();
+  playEat(f);
+  const ch=$('#char'); ch.classList.remove('jiggle','workout','sleep'); void ch.offsetWidth; ch.classList.add('jiggle');
+  flash('eat');
+  if(f.k>=500){ $('#stage').classList.remove('shake'); void $('#stage').offsetWidth; $('#stage').classList.add('shake'); }
+  fxText(`+${fmt(f.k)}kcal`,'#ff4f6d',m.x,m.y-30, f.k>=500?40:32);
+  setTimeout(()=>fxText(`+${(f.k/KCAL_PER_KG*speed).toFixed(2)}kg`,'#ffd23f',m.x+50,m.y+10,24),180);
+  bangs(m.x,m.y,['💥','✨','💢','⭐']);
+  openMouth(false);
+  const pig=clamp((fatness()-0.2)/0.7);
+  if(pig>0.4){ if(ready()) SND.oink(T0(.5)); say(pick(['꿀꿀! 🐷','꿀꿀꿀~ 더 줘!','나 돼지 아니야… 꿀꿀','꿀! 맛있다 🐽'])); changeWeight(f.k); return; }
+  say(f.k>=500 ? pick(['칼로리 폭탄!! 💣','이건 못 참지 🤤','배 터지겠다~','행복은 칼로리순!']) :
+      f.k<=110 ? pick(['가볍게 냠 🥗','건강한 선택 👍','이 정도는 괜찮아~']) :
+      pick(['냠냠! 😋','꿀맛~','하나 더?!','멈출 수 없어!']));
+  changeWeight(f.k);
+}
+function act(a){
+  if(busy) return; busy=true; nAct++;
+  const kcal=actKcal(a); outK+=kcal;
+  const ch=$('#char'); ch.classList.remove('jiggle','workout','sleep'); void ch.offsetWidth; ch.classList.add(a.mode);
+  const DUR=1.6; playAct(a,DUR); BGM.fast=a.mode==='workout';
+  if(a.mode==='sleep'){ setEyes(true); say(a.n==='꿀잠'?'쿨쿨… 💤':'꼬르륵… 참는다 ⏰'); }
+  else { $('#sweat').style.display=''; say(pick(['불태워!! 🔥','하나 둘! 하나 둘!','땀 뻘뻘 💦','지방아 녹아라~'])); }
+  flash('burn');
+  const m=mouthPos();
+  fxText(a.e,'#fff',m.x+90,m.y-70,56);
+  let steps=16, i=0;
+  const t=setInterval(()=>{
+    i++; changeWeight(-kcal/steps); pileBurn(kcal/steps);
+    if(ready()&&i%2===0) SND.blip(T0(),i);
+    if(i>=steps){ clearInterval(t); finishAct(); }
+  },DUR*1000/steps);
+  setTimeout(()=>fxText(`-${fmt(kcal)}kcal`,'#36c150',m.x,m.y-40,36),100);
+  setTimeout(()=>fxText(`-${(kcal/KCAL_PER_KG*speed).toFixed(2)}kg`,'#5ec8ff',m.x+50,m.y+10,24),280);
+  function finishAct(){
+    BGM.fast=false; if(ready()) SND.bling();
+    setTimeout(()=>{ ch.classList.remove('workout','sleep'); $('#sweat').style.display='none'; setEyes(false); busy=false;
+      if(playing) say(pick(['개운하다~ 😆','오 빠졌다!','다음은 뭐 하지?','배고파졌어… 🤤'])); },350);
+  }
+}
+
+/* ================= DRAG & TAP ================= */
+let drag=null;
+document.querySelector('.panel').addEventListener('pointerdown',e=>{
+  const c=e.target.closest('.card'); if(!c||!playing) return;
+  drag={k:c.parentElement.dataset.k, card:c, x0:e.clientX, y0:e.clientY, moved:false, el:null, id:e.pointerId};
+});
+window.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  const dx=e.clientX-drag.x0, dy=e.clientY-drag.y0;
+  if(!drag.el && drag.k==='eat' && dy<-12 && Math.abs(dy)>Math.abs(dx)){
+    drag.moved=true;
+    drag.el=document.createElement('div'); drag.el.className='flyer'; drag.el.textContent=FOODS[+drag.card.dataset.i].e;
+    document.body.appendChild(drag.el); openMouth(true); say('아~ 🤤');
+  }
+  if(Math.abs(dx)>10) drag.moved=true;
+  if(drag.el){
+    drag.el.style.left=e.clientX+'px'; drag.el.style.top=e.clientY+'px';
+    const m=mouthPos(); const d=Math.hypot(e.clientX-m.x,e.clientY-m.y);
+    openMouth(true); svg.mouth.setAttribute('ry', d<90?26:18);
+  }
+});
+window.addEventListener('pointerup',e=>{
+  if(!drag) return;
+  const d0=drag; drag=null;
+  const i=+d0.card.dataset.i;
+  if(d0.el){
+    const m=mouthPos(); const d=Math.hypot(e.clientX-m.x,e.clientY-m.y);
+    if(d<110){ d0.el.remove(); eat(FOODS[i]); }
+    else { d0.el.animate([{opacity:1},{opacity:0,transform:'translate(-50%,10%) scale(.4)'}],{duration:250}).onfinish=()=>d0.el.remove(); openMouth(false); say('어디 가~ 😢'); }
+    return;
+  }
+  if(d0.moved) return;
+  if(d0.k==='eat') flyToMouth(FOODS[i], d0.card); else act(ACTS[i]);
+});
+window.addEventListener('pointercancel',()=>{ if(drag&&drag.el) drag.el.remove(); drag=null; openMouth(false); });
+
+function flyToMouth(f, card){
+  const r=card.getBoundingClientRect(), sx=r.left+r.width/2, sy=r.top+20;
+  const el=document.createElement('div'); el.className='flyer'; el.textContent=f.e; document.body.appendChild(el);
+  openMouth(true); if(ready()) SND.whoosh();
+  const t0=performance.now(), dur=380;
+  (function step(now){
+    const m=mouthPos(); const k=Math.min(1,(now-t0)/dur), ease=1-Math.pow(1-k,2);
+    const x=sx+(m.x-sx)*ease, y=sy+(m.y-sy)*ease - Math.sin(k*Math.PI)*90;
+    el.style.left=x+'px'; el.style.top=y+'px'; el.style.transform=`translate(-50%,-50%) rotate(${k*360}deg) scale(${1-k*.5})`;
+    if(k<1) requestAnimationFrame(step); else { el.remove(); eat(f); }
+  })(t0);
+}
+
+/* ================= START / END ================= */
+function validate(){
+  const h=parseFloat($('#inH').value), w=parseFloat($('#inW').value), t=parseFloat($('#inT').value);
+  const warn=$('#warn');
+  if(!(h>=100&&h<=230)) return warn.textContent='키는 100~230cm 사이로 입력해주세요.', null;
+  if(!(w>=25&&w<=250)) return warn.textContent='현재 몸무게는 25~250kg 사이로 입력해주세요.', null;
+  if(!(t>=25&&t<=250)) return warn.textContent='목표 몸무게는 25~250kg 사이로 입력해주세요.', null;
+  const sb=w/((h/100)**2);
+  if(sb>=18.5 && sb<23 && Math.abs(w-t)<0.5) return warn.textContent='이미 BMI 정상이에요! 목표 몸무게를 현재와 0.5kg 이상 다르게 입력해주세요.', null;
+  return {h,w,t};
+}
+['#inH','#inW','#inT'].forEach(id=>$(id).addEventListener('input',()=>{
+  const h=parseFloat($('#inH').value), w=parseFloat($('#inW').value), t=parseFloat($('#inT').value);
+  const warn=$('#warn'), rule=$('#rule'); warn.textContent=''; rule.style.display='none';
+  if(h>=100 && w>=25){
+    const r=rules(h,w,t>=25?t:w);
+    rule.innerHTML=`지금 BMI <b>${r.sb.toFixed(1)}</b> (${bmiLabel(r.sb)})<br>🏆 성공: <b>${r.winW.toFixed(1)}kg</b> ${r.winNote}<br>💀 실패: <b>${r.failW.toFixed(1)}kg</b> (BMI ${r.failBMI.toFixed(1)})`;
+    rule.style.display='block';
+  }
+  if(h>=100 && t>=25){ const b=t/((h/100)**2); if(b<18.5) warn.textContent=`목표 BMI가 ${b.toFixed(1)}(저체중)이에요. 실제 목표로는 정상 범위(18.5~22.9)를 권해요.`; }
+}));
+// 성공·실패 기준 (대한비만학회 BMI 기준)
+function rules(h,w,t){
+  const m2=(h/100)**2, sb=w/m2;
+  let cat, winW, winNote;
+  if(sb>=23){ cat='over'; winW=22.9*m2; winNote='(BMI 22.9, 정상 진입)'; }
+  else if(sb<18.5){ cat='under'; winW=18.5*m2; winNote='(BMI 18.5, 정상 진입)'; }
+  else { cat='normal'; winW=Math.min(22.9*m2,Math.max(18.5*m2,t)); winNote='(정상 BMI 안에서 목표 몸무게)'; }
+  const fb=Math.max(35, sb+3); // 이미 BMI 35 이상이면 지금보다 BMI 3 더 오르면 실패
+  return {sb,cat,winW,winNote,failBMI:fb,failW:fb*m2};
+}
+$('#startBtn').onclick=()=>{
+  const v=validate(); if(!v) return;
+  H=v.h; W=startW=v.w;
+  const r=rules(v.h,v.w,v.t); startCat=r.cat; winW=r.winW; failW=r.failW; failBMI=r.failBMI;
+  T=winW; dir = T<W ? -1 : 1;
+  $('#plTxt').textContent=`💀 BMI ${Math.round(failBMI*10)/10} 실패`; $('#prTxt').textContent=startCat==='normal'?'목표 성공 🏆':'BMI 정상 성공 🏆';
+  inK=outK=nFood=nAct=0; busy=false; playing=true; pileReset();
+  bodyW=targetBodyW();
+  $('#target').textContent=T.toFixed(1);
+  $('#startOv').classList.add('hide'); $('#endOv').classList.add('hide');
+  say(dir<0?'오늘부터 다이어트! …근데 배고파 🤤':'목표는 벌크업! 많이 먹자 💪');
+  shownF=0; SEC.eat.cat=SEC.burn.cat=null; renderSec('eat'); updateHUD();
+  audioUnlock(); if(ready()) SND.start(); setTimeout(()=>{ if(AU.bgmOn) bgmStart(); },700);
+};
+$('#againBtn').onclick=()=>{ $('#endOv').classList.add('hide'); $('#startOv').classList.remove('hide'); };
+['#inH','#inW','#inT'].forEach(id=>$(id).addEventListener('keydown',e=>{ if(e.key==='Enter') $('#startBtn').click(); }));
+
+function checkEnd(){
+  if(!playing) return;
+  const b=bmiOf(W);
+  const reached = startCat==='over' ? b<23 : startCat==='under' ? b>=18.5 : (winW<startW ? W<=winW : W>=winW);
+  const blown = b>=failBMI-1e-9;
+  if(reached) end('win'); else if(blown) end('lose');
+}
+$('#sfxBtn').onclick=()=>{ audioUnlock(); setSfx(!AU.sfxOn); if(ready()) SND.tap(); };
+$('#bgmBtn').onclick=()=>{ audioUnlock(); setBgm(!AU.bgmOn); if(AU.bgmOn&&playing&&!BGM.on) bgmStart(); };
+$('#quitBtn').onclick=()=>{ if(playing) end('quit'); };
+function end(kind){
+  playing=false; const win=kind==='win'; bgmStop();
+  setTimeout(()=>{
+    $('#eIn').textContent=fmt(inK)+'kcal'; $('#eOut').textContent=fmt(outK)+'kcal';
+    $('#eFood').textContent=nFood+'개'; $('#eAct').textContent=nAct+'회';
+    if(win){
+      $('#endTitle').innerHTML='다이어트<br><span>성공!</span>';
+      $('#endMsg').innerHTML=`${startW.toFixed(1)}kg → <b>${W.toFixed(1)}kg</b><br>BMI <b>${bmiOf(W).toFixed(1)}</b> · ${bmiLabel(bmiOf(W))} 🎉<br>${speed===10?'(10배속 게임 모드 기준)':''}`;
+      if(ready()) SND.win(); confetti(['🎉','⭐','💪','🥗','✨']);
+    } else if(kind==='quit'){
+      const d=W-startW;
+      $('#endTitle').innerHTML='게임<br><span>종료</span>';
+      $('#endMsg').innerHTML=`${startW.toFixed(1)}kg → <b>${W.toFixed(1)}kg</b> (${d>=0?'+':''}${d.toFixed(1)}kg)<br>성공(${T.toFixed(1)}kg)까지 ${Math.abs(W-T).toFixed(1)}kg 남았어요.`;
+      if(ready()) SND.quit();
+    } else {
+      $('#endTitle').innerHTML='다이어트<br><span>실패!</span>';
+      $('#endMsg').innerHTML=`BMI <b>${bmiOf(W).toFixed(1)}</b> · 초고도비만 💥<br>${startW.toFixed(1)}kg → <b>${W.toFixed(1)}kg</b><br>다시 도전해볼까요?`;
+      if(ready()) SND.lose(); buzz([200,80,300]); confetti(['🍔','🍕','🍗','💥','🍩']);
+    }
+    $('#endOv').classList.remove('hide');
+  },kind==='quit'?150:900);
+}
+function confetti(set){
+  for(let i=0;i<40;i++){ const c=document.createElement('div'); c.className='confetti'; c.textContent=pick(set);
+    c.style.left=Math.random()*100+'vw'; c.style.animationDuration=(1.6+Math.random()*2)+'s'; c.style.animationDelay=Math.random()*.6+'s';
+    document.body.appendChild(c); setTimeout(()=>c.remove(),4600); }
+}
+
+/* ================= INFO ================= */
+function buildInfo(){
+  const foodRows = FOODS.map(f=>`<tr><td>${f.e} ${f.n} <span style="color:#8a7a66">(${f.s})</span></td><td>${fmt(f.k)} kcal</td></tr>`).join('');
+  const actRows = ACTS.map(a=>`<tr><td>${a.e} ${a.n} <span style="color:#8a7a66">(${a.s})</span></td><td>MET ${a.met}</td></tr>`).join('');
+  $('#srcBody').innerHTML = `
+    <h3>🍽️ 음식 칼로리</h3>
+    식품의약품안전처 식품영양성분 데이터베이스 기준 1인분 평균값이에요. 신라면은 제품 영양표시(120g, 500kcal) 값이에요. 조리법·브랜드에 따라 ±10~15% 달라질 수 있어요.
+    <table>${foodRows}</table>
+    <h3>🔥 소모 칼로리</h3>
+    <b>소모 kcal = MET × 체중(kg) × 시간(h)</b><br>1 MET = 쉬고 있을 때 1kg당 1시간에 1kcal. 체중이 바뀌면 소모 칼로리도 같이 바뀌어요. MET 값은 Compendium of Physical Activities 기준이에요. 단식은 휴식대사(1 MET), 수면은 0.9 MET로 계산해요.
+    <table>${actRows}</table>
+    <h3>⚖️ 몸무게 변환</h3>
+    체지방 1kg ≈ 7,700kcal로 계산해요. <b>⚡10배속</b>(기본)은 게임을 빨리 진행하려고 체중 변화만 10배로 키운 모드이고, 칼로리 숫자는 그대로예요. <b>🐢 현실 1배속</b>을 누르면 실제 비율로 바뀌어요.
+    <h3>⚠️ 참고</h3>
+    재미로 하는 게임이에요. 실제 체중 관리나 단식은 건강 상태에 맞게 전문가와 상의하세요.`;
+}
+$('#infoBtn').onclick=()=>{ buildInfo(); $('#infoOv').classList.remove('hide'); };
+$('#infoClose').onclick=()=>$('#infoOv').classList.add('hide');
+
+/* init */
+renderSec('eat'); renderSec('burn');
+})();
+</script>
+</body>
+</html>
